@@ -29,18 +29,34 @@ class LoadingButton @JvmOverloads constructor(
         typeface = Typeface.create( "", Typeface.NORMAL)
     }
 
-    private lateinit var frame: Rect
+    private val primaryColor = ContextCompat.getColorStateList(context, R.color.colorPrimary)?.defaultColor
+    private val primaryDarkColor = ContextCompat.getColorStateList(context, R.color.colorPrimaryDark)?.defaultColor
+    private val secondaryColor = ContextCompat.getColorStateList(context, R.color.colorAccent)?.defaultColor
+    private val colorOnPrimary = ContextCompat.getColorStateList(context, R.color.white)?.defaultColor
+
+    private lateinit var textFrame: Rect
+    private var text = resources.getString(R.string.button_name)
 
     init {
         isClickable = true
     }
 
-
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        paint.color = ContextCompat.getColorStateList(context, R.color.colorPrimary)?.defaultColor ?: Color.BLACK
+        if (primaryColor != null) {
+            paint.color = primaryColor
+        }
         canvas?.drawRoundRect(0f, 0f, width.toFloat(), height.toFloat(), 8f, 8f, paint)
+
+        if (colorOnPrimary != null) {
+            paint.color = colorOnPrimary
+        }
+
+        val textXPosition = width / 2
+        val textYPosition = height / 2 + textFrame.height() / 2
+
+        canvas?.drawText(text, textXPosition.toFloat(), textYPosition.toFloat(), paint)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -56,4 +72,11 @@ class LoadingButton @JvmOverloads constructor(
         setMeasuredDimension(w, h)
     }
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+
+        val rect = Rect()
+        paint.getTextBounds(text, 0, text.count(), rect)
+        textFrame = rect
+    }
 }
