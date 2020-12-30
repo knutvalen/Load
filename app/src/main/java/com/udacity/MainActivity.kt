@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var notificationManager: NotificationManager
     private lateinit var pendingIntent: PendingIntent
     private lateinit var action: NotificationCompat.Action
+    private var loadResource: String = glideURL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +33,21 @@ class MainActivity : AppCompatActivity() {
 
         custom_button.setOnClickListener {
             download()
+            //TODO: update button state
         }
+
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            loadResource = when (checkedId) {
+                R.id.radioButton1 -> glideURL
+                R.id.radioButton2 -> loadURL
+                R.id.radioButton3 -> retrofitURL
+                else -> ""
+            }
+
+            Timber.i("loadResource: $loadResource")
+        }
+
+        radioGroup.check(R.id.radioButton1)
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -42,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun download() {
         val request =
-            DownloadManager.Request(Uri.parse(URL))
+            DownloadManager.Request(Uri.parse(loadResource))
                 .setTitle(getString(R.string.app_name))
                 .setDescription(getString(R.string.app_description))
                 .setRequiresCharging(false)
@@ -55,8 +71,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val URL =
+        private const val glideURL = "https://github.com/bumptech/glide/archive/master.zip"
+        private const val loadURL =
             "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
+        private const val retrofitURL = "https://github.com/square/retrofit/archive/master.zip"
         private const val CHANNEL_ID = "channelId"
     }
 

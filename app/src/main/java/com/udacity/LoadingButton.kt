@@ -15,7 +15,12 @@ class LoadingButton @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
     private var widthSize = 0
     private var heightSize = 0
-
+    private val primaryColor = ContextCompat.getColorStateList(context, R.color.colorPrimary)?.defaultColor
+    private val primaryDarkColor = ContextCompat.getColorStateList(context, R.color.colorPrimaryDark)?.defaultColor
+    private val secondaryColor = ContextCompat.getColorStateList(context, R.color.colorAccent)?.defaultColor
+    private val colorOnPrimary = ContextCompat.getColorStateList(context, R.color.white)?.defaultColor
+    private lateinit var textFrame: Rect
+    private var text = resources.getString(R.string.button_name)
     private val valueAnimator = ValueAnimator()
 
     private var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
@@ -28,14 +33,6 @@ class LoadingButton @JvmOverloads constructor(
         textSize = 55.0f
         typeface = Typeface.create( "", Typeface.NORMAL)
     }
-
-    private val primaryColor = ContextCompat.getColorStateList(context, R.color.colorPrimary)?.defaultColor
-    private val primaryDarkColor = ContextCompat.getColorStateList(context, R.color.colorPrimaryDark)?.defaultColor
-    private val secondaryColor = ContextCompat.getColorStateList(context, R.color.colorAccent)?.defaultColor
-    private val colorOnPrimary = ContextCompat.getColorStateList(context, R.color.white)?.defaultColor
-
-    private lateinit var textFrame: Rect
-    private var text = resources.getString(R.string.button_name)
 
     init {
         isClickable = true
