@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import kotlinx.android.synthetic.main.activity_main.*
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var notificationManager: NotificationManager
     private lateinit var pendingIntent: PendingIntent
     private lateinit var action: NotificationCompat.Action
-    private var loadResource: String = glideURL
+    private var loadResource: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,8 +33,13 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         custom_button.setOnClickListener {
+            if (loadResource == null) {
+                Toast.makeText(this, getString(R.string.select_file), Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
+            custom_button.setState(ButtonState.Clicked)
             download()
-            //TODO: update button state
         }
 
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -46,17 +52,22 @@ class MainActivity : AppCompatActivity() {
 
             Timber.i("loadResource: $loadResource")
         }
-
-        radioGroup.check(R.id.radioButton1)
     }
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)?.let {
+                if (it == downloadID) {
+                    Timber.i("onReceive: $downloadID")
+                    custom_button.setState(ButtonState.Completed)
+                }
+            }
         }
     }
 
     private fun download() {
+        if (loadResource == null) return
+
         val request =
             DownloadManager.Request(Uri.parse(loadResource))
                 .setTitle(getString(R.string.app_name))

@@ -1,11 +1,14 @@
 package com.udacity
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
+import timber.log.Timber
 import kotlin.properties.Delegates
 
 class LoadingButton @JvmOverloads constructor(
@@ -21,10 +24,29 @@ class LoadingButton @JvmOverloads constructor(
     private val colorOnPrimary = ContextCompat.getColorStateList(context, R.color.white)?.defaultColor
     private lateinit var textFrame: Rect
     private var text = resources.getString(R.string.button_name)
-    private val valueAnimator = ValueAnimator()
+    private val max = 100f
+    private var valueAnimator = ValueAnimator.ofFloat(0f, max)
 
-    private var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
+    private var buttonState: ButtonState by Delegates.observable(ButtonState.Completed) { property, oldValue, newValue ->
+        text = when (newValue) {
+            ButtonState.Loading -> resources.getString(R.string.button_loading)
+            else -> resources.getString(R.string.button_name)
+        }
 
+        if (newValue == ButtonState.Clicked) {
+            valueAnimator.duration = 3000
+            valueAnimator.start()
+        }
+
+        if (newValue == ButtonState.Completed) {
+            isEnabled = true
+
+            if (valueAnimator.isRunning) {
+                valueAnimator.end()
+            }
+
+            invalidate()
+        }
     }
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -36,6 +58,18 @@ class LoadingButton @JvmOverloads constructor(
 
     init {
         isClickable = true
+
+        valueAnimator.addUpdateListener {
+            invalidate()
+        }
+
+        valueAnimator.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                Timber.i("valueAnimator onAnimationStart")
+                isEnabled = false
+                buttonState = ButtonState.Loading
+            }
+        })
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -44,14 +78,28 @@ class LoadingButton @JvmOverloads constructor(
         if (primaryColor != null) {
             paint.color = primaryColor
         }
-        canvas?.drawRoundRect(0f, 0f, width.toFloat(), height.toFloat(), 8f, 8f, paint)
+
+        canvas?.drawRoundRect(0f, 0f, widthSize.toFloat(), heightSize.toFloat(), 8f, 8f, paint)
+
+        if (primaryDarkColor != null) {
+            paint.color = primaryDarkColor
+        }
+
+        (valueAnimator.animatedValue as Float).let { animatedValue ->
+            Timber.i("onDraw animatedValue: $animatedValue")
+
+            if (buttonState == ButtonState.Loading) {
+                val right = widthSize / max * animatedValue
+                canvas?.drawRoundRect(0f, 0f, right, heightSize.toFloat(), 8f, 8f, paint)
+            }
+        }
 
         if (colorOnPrimary != null) {
             paint.color = colorOnPrimary
         }
 
-        val textXPosition = width / 2
-        val textYPosition = height / 2 + textFrame.height() / 2
+        val textXPosition = widthSize / 2
+        val textYPosition = heightSize / 2 + textFrame.height() / 2
 
         canvas?.drawText(text, textXPosition.toFloat(), textYPosition.toFloat(), paint)
     }
@@ -76,4 +124,10 @@ class LoadingButton @JvmOverloads constructor(
         paint.getTextBounds(text, 0, text.count(), rect)
         textFrame = rect
     }
+
+    fun setState(state: ButtonState) {
+        Timber.i("setState: $state")
+        buttonState = state
+    }
+
 }
