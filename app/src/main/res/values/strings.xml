@@ -9,4 +9,5 @@
     <string name="button_loading">We are loading </string>
     <string name="title_activity_detail">DetailActivity</string>
     <string name="select_file">Please select the file to download</string>
+    <string name="check_the_status">Check the status</string>
 </resources>

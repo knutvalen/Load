@@ -1,17 +1,20 @@
 package com.udacity
 
 import android.app.DownloadManager
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import timber.log.Timber
@@ -47,21 +50,69 @@ class MainActivity : AppCompatActivity() {
                 R.id.radioButton1 -> glideURL
                 R.id.radioButton2 -> loadURL
                 R.id.radioButton3 -> retrofitURL
-                else -> ""
+                else -> null
             }
 
             Timber.i("loadResource: $loadResource")
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val notificationChannel = NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW
+            ).apply { setShowBadge(false) }
+
+            notificationChannel.enableLights(true)
+            notificationChannel.lightColor = Color.RED
+            notificationChannel.enableVibration(true)
+
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(notificationChannel)
         }
     }
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)?.let {
-                if (it == downloadID) {
-                    Timber.i("onReceive: $downloadID")
-                    custom_button.setState(ButtonState.Completed)
-                }
-            }
+            if (intent == null) return
+
+            val intentDownloadID = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            Timber.i("onReceive: $intentDownloadID")
+
+            if (intentDownloadID != downloadID) return
+
+            custom_button.setState(ButtonState.Completed)
+
+            if (context == null) return
+
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                NOTIFICATION_ID,
+                Intent(context, DetailActivity::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
+            val action = NotificationCompat.Action(
+                R.drawable.ic_assistant_black_24dp,
+                context.getString(R.string.check_the_status),
+                pendingIntent
+            )
+
+            val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_assistant_black_24dp)
+                .setContentTitle(context.getString(R.string.notification_title))
+                .setContentText(context.getString(R.string.notification_description))
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .addAction(action)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+
+            val notificationManager = ContextCompat.getSystemService(
+                context,
+                NotificationManager::class.java
+            ) as NotificationManager
+
+            notificationManager.notify(NOTIFICATION_ID, builder.build())
         }
     }
 
@@ -87,6 +138,8 @@ class MainActivity : AppCompatActivity() {
             "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
         private const val retrofitURL = "https://github.com/square/retrofit/archive/master.zip"
         private const val CHANNEL_ID = "channelId"
+        private const val CHANNEL_NAME = "Downloads"
+        private const val NOTIFICATION_ID = 0
     }
 
 }

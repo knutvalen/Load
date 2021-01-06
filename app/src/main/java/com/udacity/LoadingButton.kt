@@ -20,14 +20,14 @@ class LoadingButton @JvmOverloads constructor(
     private var heightSize = 0
     private val primaryColor = ContextCompat.getColorStateList(context, R.color.colorPrimary)?.defaultColor
     private val primaryDarkColor = ContextCompat.getColorStateList(context, R.color.colorPrimaryDark)?.defaultColor
-    private val secondaryColor = ContextCompat.getColorStateList(context, R.color.colorAccent)?.defaultColor
+//    private val secondaryColor = ContextCompat.getColorStateList(context, R.color.colorAccent)?.defaultColor
     private val colorOnPrimary = ContextCompat.getColorStateList(context, R.color.white)?.defaultColor
     private lateinit var textFrame: Rect
     private var text = resources.getString(R.string.button_name)
     private val max = 100f
     private var valueAnimator = ValueAnimator.ofFloat(0f, max)
 
-    private var buttonState: ButtonState by Delegates.observable(ButtonState.Completed) { property, oldValue, newValue ->
+    private var buttonState: ButtonState by Delegates.observable(ButtonState.Completed) { _, _, newValue ->
         text = when (newValue) {
             ButtonState.Loading -> resources.getString(R.string.button_loading)
             else -> resources.getString(R.string.button_name)
