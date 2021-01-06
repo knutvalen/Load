@@ -89,8 +89,19 @@ class LoadingButton @JvmOverloads constructor(
             Timber.i("onDraw animatedValue: $animatedValue")
 
             if (buttonState == ButtonState.Loading) {
-                val right = widthSize / max * animatedValue
-                canvas?.drawRoundRect(0f, 0f, right, heightSize.toFloat(), 8f, 8f, paint)
+                canvas?.drawRoundRect(0f, 0f, widthSize / max * animatedValue, heightSize.toFloat(), 8f, 8f, paint)
+
+                //TODO: use drawArc() to draw circle
+
+                if (secondaryColor != null) {
+                    paint.color = secondaryColor
+                }
+
+                val radius = textFrame.height()
+                val circleXPosition = widthSize - 16 - radius * 2
+                val circleYPosition = heightSize / 2
+
+                canvas?.drawCircle(circleXPosition.toFloat(), circleYPosition.toFloat(), radius.toFloat(), paint)
             }
         }
 
@@ -102,17 +113,6 @@ class LoadingButton @JvmOverloads constructor(
         val textYPosition = heightSize / 2 + textFrame.height() / 2
 
         canvas?.drawText(text, textXPosition.toFloat(), textYPosition.toFloat(), paint)
-
-        //TODO: use drawArc() to draw circle
-
-        if (secondaryColor != null) {
-            paint.color = secondaryColor
-        }
-
-        val circleXPosition = textXPosition + textFrame.width()
-        val circleYPosition = heightSize / 2
-
-        canvas?.drawCircle(circleXPosition.toFloat(), circleYPosition.toFloat(), textFrame.height().toFloat(), paint)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
