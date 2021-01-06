@@ -17,7 +17,9 @@ class DetailActivity : AppCompatActivity() {
         notificationManager.cancelAll()
 
         val status = intent.getStringExtra("status")
-        Timber.i("status: $status")
+        val repository = intent.getStringExtra("repository")
+
+        
     }
 
 }

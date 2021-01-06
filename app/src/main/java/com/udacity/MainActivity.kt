@@ -14,7 +14,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import timber.log.Timber
@@ -96,12 +95,20 @@ class MainActivity : AppCompatActivity() {
 
                     Timber.i("onReceive status: $status")
                     detailIntent.putExtra("status", status)
+
+                    val uri = when (cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_URI))) {
+                        glideURL -> "Glide"
+                        loadURL -> "Load app"
+                        retrofitURL -> "Retrofit"
+                        else -> null
+                    }
+
+                    Timber.i("onReceive repository: $uri")
+                    detailIntent.putExtra("repository", uri)
                 }
             }
 
             if (context == null) return
-
-
 
             val pendingIntent = PendingIntent.getActivity(
                 context,
