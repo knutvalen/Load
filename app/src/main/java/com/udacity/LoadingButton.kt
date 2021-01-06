@@ -7,6 +7,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
 import timber.log.Timber
 import kotlin.properties.Delegates
@@ -25,7 +26,8 @@ class LoadingButton @JvmOverloads constructor(
     private lateinit var textFrame: Rect
     private var text = resources.getString(R.string.button_name)
     private val max = 100f
-    private var valueAnimator = ValueAnimator.ofFloat(0f, max)
+    private val loadAnimator = ValueAnimator.ofFloat(0f, max)
+    private var cancelAnimator: ValueAnimator? = null
 
     private var buttonState: ButtonState by Delegates.observable(ButtonState.Completed) { _, _, newValue ->
         text = when (newValue) {
@@ -34,15 +36,37 @@ class LoadingButton @JvmOverloads constructor(
         }
 
         if (newValue == ButtonState.Clicked) {
-            valueAnimator.duration = 3000
-            valueAnimator.start()
+            loadAnimator.duration = 3000
+            loadAnimator.start()
         }
 
         if (newValue == ButtonState.Completed) {
-            isEnabled = true
+            if (loadAnimator.isRunning) {
+                loadAnimator.cancel()
+                val cancelAnimator = ValueAnimator.ofFloat(loadAnimator.animatedValue as Float, max)
+                cancelAnimator.duration = 500
+                cancelAnimator.interpolator = DecelerateInterpolator()
 
-            if (valueAnimator.isRunning) {
-                valueAnimator.end()
+                cancelAnimator.addUpdateListener {
+                    invalidate()
+                }
+
+                cancelAnimator.addListener(object: AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        isEnabled = false
+                    }
+
+                    override fun onAnimationEnd(animation: Animator?) {
+                        if (buttonState == ButtonState.Completed) {
+                            isEnabled = true
+                        }
+                    }
+                })
+
+                this.cancelAnimator = cancelAnimator
+                cancelAnimator.start()
+            } else {
+                isEnabled = true
             }
 
             invalidate()
@@ -59,15 +83,21 @@ class LoadingButton @JvmOverloads constructor(
     init {
         isClickable = true
 
-        valueAnimator.addUpdateListener {
+        loadAnimator.addUpdateListener {
             invalidate()
         }
 
-        valueAnimator.addListener(object : AnimatorListenerAdapter() {
+        loadAnimator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator?) {
                 Timber.i("valueAnimator onAnimationStart")
                 isEnabled = false
                 buttonState = ButtonState.Loading
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                if (buttonState == ButtonState.Completed) {
+                    isEnabled = true
+                }
             }
         })
     }
@@ -81,33 +111,38 @@ class LoadingButton @JvmOverloads constructor(
 
         canvas?.drawRoundRect(0f, 0f, widthSize.toFloat(), heightSize.toFloat(), 8f, 8f, paint)
 
+        var animatedValue: Float? = null
+        if (buttonState == ButtonState.Loading) {
+            animatedValue = loadAnimator.animatedValue as Float
+        }
+
+        if (cancelAnimator?.isRunning == true) {
+            animatedValue = cancelAnimator?.animatedValue as Float
+        }
+
         if (primaryDarkColor != null) {
             paint.color = primaryDarkColor
         }
 
-        (valueAnimator.animatedValue as Float).let { animatedValue ->
-            Timber.i("onDraw animatedValue: $animatedValue")
+        animatedValue?.let {
+            canvas?.drawRoundRect(0f, 0f, widthSize / max * it, heightSize.toFloat(), 8f, 8f, paint)
 
-            if (buttonState == ButtonState.Loading) {
-                canvas?.drawRoundRect(0f, 0f, widthSize / max * animatedValue, heightSize.toFloat(), 8f, 8f, paint)
-
-                if (secondaryColor != null) {
-                    paint.color = secondaryColor
-                }
-
-                val radius = textFrame.height()
-
-                canvas?.drawArc(
-                    (widthSize - 16 - radius * 2).toFloat(),
-                    (heightSize / 2 - radius).toFloat(),
-                    (widthSize - 16).toFloat(),
-                    (heightSize / 2 + radius).toFloat(),
-                    -90f,
-                    360f / max * animatedValue,
-                    true,
-                    paint
-                )
+            if (secondaryColor != null) {
+                paint.color = secondaryColor
             }
+
+            val radius = textFrame.height()
+
+            canvas?.drawArc(
+                (widthSize - 16 - radius * 2).toFloat(),
+                (heightSize / 2 - radius).toFloat(),
+                (widthSize - 16).toFloat(),
+                (heightSize / 2 + radius).toFloat(),
+                -90f,
+                360f / max * it,
+                true,
+                paint
+            )
         }
 
         if (colorOnPrimary != null) {
