@@ -91,17 +91,22 @@ class LoadingButton @JvmOverloads constructor(
             if (buttonState == ButtonState.Loading) {
                 canvas?.drawRoundRect(0f, 0f, widthSize / max * animatedValue, heightSize.toFloat(), 8f, 8f, paint)
 
-                //TODO: use drawArc() to draw circle
-
                 if (secondaryColor != null) {
                     paint.color = secondaryColor
                 }
 
                 val radius = textFrame.height()
-                val circleXPosition = widthSize - 16 - radius * 2
-                val circleYPosition = heightSize / 2
 
-                canvas?.drawCircle(circleXPosition.toFloat(), circleYPosition.toFloat(), radius.toFloat(), paint)
+                canvas?.drawArc(
+                    (widthSize - 16 - radius * 2).toFloat(),
+                    (heightSize / 2 - radius).toFloat(),
+                    (widthSize - 16).toFloat(),
+                    (heightSize / 2 + radius).toFloat(),
+                    -90f,
+                    360f / max * animatedValue,
+                    true,
+                    paint
+                )
             }
         }
 
