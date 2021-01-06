@@ -20,6 +20,7 @@ class LoadingButton @JvmOverloads constructor(
     private var heightSize = 0
     private val primaryColor = ContextCompat.getColorStateList(context, R.color.colorPrimary)?.defaultColor
     private val primaryDarkColor = ContextCompat.getColorStateList(context, R.color.colorPrimaryDark)?.defaultColor
+    private val secondaryColor = ContextCompat.getColorStateList(context, R.color.colorAccent)?.defaultColor
     private val colorOnPrimary = ContextCompat.getColorStateList(context, R.color.white)?.defaultColor
     private lateinit var textFrame: Rect
     private var text = resources.getString(R.string.button_name)
@@ -103,6 +104,15 @@ class LoadingButton @JvmOverloads constructor(
         canvas?.drawText(text, textXPosition.toFloat(), textYPosition.toFloat(), paint)
 
         //TODO: use drawArc() to draw circle
+
+        if (secondaryColor != null) {
+            paint.color = secondaryColor
+        }
+
+        val circleXPosition = textXPosition + textFrame.width()
+        val circleYPosition = heightSize / 2
+
+        canvas?.drawCircle(circleXPosition.toFloat(), circleYPosition.toFloat(), textFrame.height().toFloat(), paint)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
