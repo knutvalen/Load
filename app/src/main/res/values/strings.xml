@@ -12,4 +12,8 @@
     <string name="check_the_status">Check the status</string>
     <string name="success">Success</string>
     <string name="fail">Fail</string>
+    <string name="file_name">File name:</string>
+    <string name="status">Status:</string>
+    <string name="glide">Glide</string>
+    <string name="retrofit">Retrofit</string>
 </resources>

@@ -96,15 +96,15 @@ class MainActivity : AppCompatActivity() {
                     Timber.i("onReceive status: $status")
                     detailIntent.putExtra("status", status)
 
-                    val uri = when (cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_URI))) {
-                        glideURL -> "Glide"
-                        loadURL -> "Load app"
-                        retrofitURL -> "Retrofit"
+                    val repository = when (cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_URI))) {
+                        glideURL -> getString(R.string.glide)
+                        loadURL -> getString(R.string.app_name)
+                        retrofitURL -> getString(R.string.retrofit)
                         else -> null
                     }
 
-                    Timber.i("onReceive repository: $uri")
-                    detailIntent.putExtra("repository", uri)
+                    Timber.i("onReceive repository: $repository")
+                    detailIntent.putExtra("repository", repository)
                 }
             }
 

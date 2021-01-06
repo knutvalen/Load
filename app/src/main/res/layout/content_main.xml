@@ -27,19 +27,19 @@
             android:id="@+id/radioButton1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Glide" />
+            android:text="@string/glide" />
 
         <RadioButton
             android:id="@+id/radioButton2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Load app" />
+            android:text="@string/app_name" />
 
         <RadioButton
             android:id="@+id/radioButton3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Retrofit" />
+            android:text="@string/retrofit" />
     </RadioGroup>
 
     <com.udacity.LoadingButton
