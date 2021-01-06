@@ -76,19 +76,37 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent == null) return
 
-            val intentDownloadID = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            Timber.i("onReceive: $intentDownloadID")
-
-            if (intentDownloadID != downloadID) return
+            if (intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) != downloadID) {
+                return
+            }
 
             custom_button.setState(ButtonState.Completed)
 
+            val query = DownloadManager.Query()
+            query.setFilterById(downloadID)
+            val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+            val detailIntent = Intent(context, DetailActivity::class.java)
+
+            downloadManager.query(query).use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val status = when (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
+                        DownloadManager.STATUS_SUCCESSFUL -> getString(R.string.success)
+                        else -> getString(R.string.fail)
+                    }
+
+                    Timber.i("onReceive status: $status")
+                    detailIntent.putExtra("status", status)
+                }
+            }
+
             if (context == null) return
+
+
 
             val pendingIntent = PendingIntent.getActivity(
                 context,
                 NOTIFICATION_ID,
-                Intent(context, DetailActivity::class.java),
+                detailIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
 
@@ -107,11 +125,7 @@ class MainActivity : AppCompatActivity() {
                 .addAction(action)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
 
-            val notificationManager = ContextCompat.getSystemService(
-                context,
-                NotificationManager::class.java
-            ) as NotificationManager
-
+            val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.notify(NOTIFICATION_ID, builder.build())
         }
     }
